@@ -1,6 +1,6 @@
-
+import json
 import click
-from api.models import db, User
+from api.models import db, User, Character, Planet
 
 """
 In this file, you can add as many commands as you want using the @app.cli.command decorator
@@ -16,10 +16,11 @@ def setup_commands(app):
     """
     @app.cli.command("insert-test-users") # name of our command
     @click.argument("count") # argument of out command
-    def insert_test_users(count):
+    def insert_test_data(count):
         print("Creating test users")
         for x in range(1, int(count) + 1):
             user = User()
+            user.name = f"User {str(x)}"
             user.email = "test_user" + str(x) + "@test.com"
             user.password = "123456"
             user.is_active = True
@@ -29,6 +30,18 @@ def setup_commands(app):
 
         print("All test users created")
 
-    @app.cli.command("insert-test-data")
-    def insert_test_data():
-        pass
+        ### Insert the code to populate others tables if needed
+    @app.cli.command("pop-chars-and-planets")
+    def pop_chars_and_planets():
+        with open('./src/api/chars-and-planets.json', 'rt') as json_data:
+            data = json.load(json_data)
+
+            for char in data["Characters"]:
+                db.session.merge(Character(**char))
+
+            db.session.commit()
+
+            for planet in data["Planets"]:
+                db.session.merge(Planet(**planet))
+
+            db.session.commit()
